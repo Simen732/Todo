@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Fiks Ferdig - Todo List Application
 
 ## Overview
@@ -78,3 +79,6 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for more details.
+=======
+# Todo
+>>>>>>> b3e9232865e2f3f1631ebd3f589ce4f3c6d380c4

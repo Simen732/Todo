@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+    <title>Your Todo List</title>
+</head>
+<body>
+    <%- include('../partials/navbar.ejs') %>
+
+    <div class="container">
+        <div class="content-header">
+            <h1>
+                <% if (isToday) { %>
+                    <span class="material-icons">wb_sunny</span> My Day
+                <% } else { %>
+                    <%= currentDate.toDateString() %>
+                <% } %>
+            </h1>
+            <div class="search-container">
+                <input type="search" class="search-field" placeholder="Search" aria-label="Search tasks">
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- Task creation form -->
+            <div class="task-create-container">
+                <form action="/todos" method="POST" class="task-create-form">
+                    <input type="text" name="title" placeholder="Add a task" required>
+                    <input type="hidden" name="dueDate" value="<%= currentDate.toISOString().substr(0, 10) %>">
+                    <div class="task-create-actions">
+                        <div class="task-create-options">
+                            <button type="button" title="Set due date">
+                                <span class="material-icons">calendar_today</span>
+                            </button>
+                            <button type="button" title="Add note">
+                                <span class="material-icons">note</span>
+                            </button>
+                            <button type="button" id="importantBtn" title="Mark as important">
+                                <span class="material-icons">star_border</span>
+                                <input type="hidden" id="importantField" name="important" value="false">
+                            </button>
+                        </div>
+                        <button type="submit" class="btn">Add</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="date-navigation">
+                <div class="date-nav-buttons">
+                    <a href="/todos?dateOffset=<%= prevDate %>" class="btn"><span class="material-icons">chevron_left</span></a>
+                    <% if (!isToday) { %>
+                        <a href="/todos" class="btn"><span class="material-icons">today</span></a>
+                    <% } %>
+                    <a href="/todos?dateOffset=<%= nextDate %>" class="btn"><span class="material-icons">chevron_right</span></a>
+                </div>
+            </div>
+
+            <% if (todos.length === 0) { %>
+                <div class="empty-state">
+                    <div class="empty-icon"><span class="material-icons md-48">checklist</span></div>
+                    <p class="empty-message">All caught up!</p>
+                    <p>Add a task above to get started</p>
+                </div>
+            <% } else { %>
+                <div class="task-section">
+                    <ul class="todo-list">
+                        <% todos.forEach(todo => { %>
+                            <li class="<%= todo.completed ? 'completed' : '' %> <%= todo.important ? 'important' : '' %>">
+                                <div class="drag-handle"></div>
+                                <div class="todo-checkbox" data-todo-id="<%= todo._id %>"></div>
+                                <div class="todo-content">
+                                    <div class="todo-content-text">
+                                        <h3><%= todo.title %></h3>
+                                        <% if (todo.description) { %>
+                                            <p class="todo-description"><%= todo.description %></p>
+                                        <% } %>
+                                        <span class="due-date">
+                                            <span class="material-icons md-18">calendar_today</span> 
+                                            <%= formatDate(todo.dueDate) %>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="todo-actions">
+                                    <!-- Add important toggle button -->
+                                    <form action="/todos/<%= todo._id %>/important?_method=PUT" method="POST" class="inline-form">
+                                        <input type="hidden" name="important" value="<%= !todo.important %>">
+                                        <button type="submit" title="<%= todo.important ? 'Remove importance' : 'Mark as important' %>" class="important-btn">
+                                            <span class="material-icons"><%= todo.important ? 'star' : 'star_border' %></span>
+                                        </button>
+                                    </form>
+                                    <form action="/todos/<%= todo._id %>?_method=PUT" method="POST" class="inline-form">
+                                        <input type="hidden" name="completed" value="<%= !todo.completed %>">
+                                        <button type="submit" title="<%= todo.completed ? 'Mark as incomplete' : 'Mark as complete' %>">
+                                            <span class="material-icons"><%= todo.completed ? 'undo' : 'check' %></span>
+                                        </button>
+                                    </form>
+                                    <form action="/todos/<%= todo._id %>?_method=DELETE" method="POST" class="inline-form">
+                                        <button type="submit" title="Delete task">
+                                            <span class="material-icons">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        <% }) %>
+                    </ul>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <%- include('../partials/footer.ejs') %>
+    <script>
+        // Add JavaScript to toggle the important status in the create form
+        document.addEventListener('DOMContentLoaded', function() {
+            const importantBtn = document.getElementById('importantBtn');
+            const importantField = document.getElementById('importantField');
+            
+            if (importantBtn) {
+                importantBtn.addEventListener('click', function() {
+                    const icon = importantBtn.querySelector('.material-icons');
+                    const isImportant = importantField.value === 'true';
+                    
+                    if (isImportant) {
+                        icon.textContent = 'star_border';
+                        importantField.value = 'false';
+                        icon.style.color = ''; // Reset to default color
+                    } else {
+                        icon.textContent = 'star';
+                        importantField.value = 'true';
+                        icon.style.color = 'var(--warning)'; // Set to yellow (warning color)
+                    }
+                    
+                    // Add animation
+                    icon.classList.add('animate');
+                    setTimeout(() => {
+                        icon.classList.remove('animate');
+                    }, 300);
+                });
+            }
+        });
+    </script>
+
+    <!-- Add these modals right before the closing </body> tag -->
+
+    <!-- Note Modal -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Note</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="noteText">Note</label>
+                    <textarea id="noteText" placeholder="Add more details about this task..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveNote">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Modal -->
+    <div id="dateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Set Due Date</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="dueDatePicker">Due Date</label>
+                    <input type="date" id="dueDatePicker" value="<%= currentDate.toISOString().substr(0, 10) %>">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveDate">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Important star toggle functionality (existing code)
+            const importantBtn = document.getElementById('importantBtn');
+            const importantField = document.getElementById('importantField');
+            
+            if (importantBtn) {
+                importantBtn.addEventListener('click', function() {
+                    const icon = importantBtn.querySelector('.material-icons');
+                    const isImportant = importantField.value === 'true';
+                    
+                    if (isImportant) {
+                        icon.textContent = 'star_border';
+                        importantField.value = 'false';
+                        icon.style.color = ''; // Reset to default color
+                    } else {
+                        icon.textContent = 'star';
+                        importantField.value = 'true';
+                        icon.style.color = 'var(--warning)'; // Set to yellow (warning color)
+                    }
+                    
+                    // Add animation
+                    icon.classList.add('animate');
+                    setTimeout(() => {
+                        icon.classList.remove('animate');
+                    }, 300);
+                });
+            }
+            
+            // Modal functionality
+            const noteModal = document.getElementById('noteModal');
+            const dateModal = document.getElementById('dateModal');
+            let descriptionField = document.createElement('input');
+            descriptionField.type = 'hidden';
+            descriptionField.name = 'description';
+            
+            let dueDateField = document.querySelector('input[name="dueDate"]');
+            
+            // Add note button click handler
+            const addNoteBtn = document.querySelector('.task-create-options button[title="Add note"]');
+            if (addNoteBtn) {
+                addNoteBtn.addEventListener('click', function() {
+                    // If we already have a description, populate the textarea
+                    const existingDesc = descriptionField.value;
+                    if (existingDesc) {
+                        document.getElementById('noteText').value = existingDesc;
+                    }
+                    
+                    openModal(noteModal);
+                });
+            }
+            
+            // Set due date button click handler
+            const setDateBtn = document.querySelector('.task-create-options button[title="Set due date"]');
+            if (setDateBtn) {
+                setDateBtn.addEventListener('click', function() {
+                    // If we already have a date, populate the date picker
+                    const existingDate = dueDateField.value;
+                    if (existingDate) {
+                        document.getElementById('dueDatePicker').value = existingDate;
+                    }
+                    
+                    openModal(dateModal);
+                });
+            }
+            
+            // Save note button click handler
+            document.getElementById('saveNote').addEventListener('click', function() {
+                const noteText = document.getElementById('noteText').value.trim();
+                
+                // Add the description to the form
+                const taskForm = document.querySelector('.task-create-form');
+                if (!taskForm.contains(descriptionField)) {
+                    taskForm.appendChild(descriptionField);
+                }
+                descriptionField.value = noteText;
+                
+                // Add visual indicator if note is present
+                const noteBtn = document.querySelector('.task-create-options button[title="Add note"]');
+                const icon = noteBtn.querySelector('.material-icons');
+                if (noteText) {
+                    icon.style.color = 'var(--primary)';
+                    noteBtn.setAttribute('title', 'Edit note');
+                } else {
+                    icon.style.color = '';
+                    noteBtn.setAttribute('title', 'Add note');
+                }
+                
+                closeModal(noteModal);
+            });
+            
+            // Save date button click handler
+            document.getElementById('saveDate').addEventListener('click', function() {
+                const selectedDate = document.getElementById('dueDatePicker').value;
+                dueDateField.value = selectedDate;
+                
+                // Add visual indicator that date is set
+                const dateBtn = document.querySelector('.task-create-options button[title="Set due date"]');
+                const icon = dateBtn.querySelector('.material-icons');
+                
+                if (selectedDate && selectedDate !== '<%= currentDate.toISOString().substr(0, 10) %>') {
+                    icon.style.color = 'var(--primary)';
+                    dateBtn.setAttribute('title', 'Change due date');
+                } else {
+                    icon.style.color = '';
+                    dateBtn.setAttribute('title', 'Set due date');
+                }
+                
+                closeModal(dateModal);
+            });
+            
+            // Close modal buttons
+            document.querySelectorAll('.close-modal').forEach(function(element) {
+                element.addEventListener('click', function() {
+                    closeModal(this.closest('.modal'));
+                });
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    closeModal(event.target);
+                }
+            });
+            
+            // Functions to open and close modals
+            function openModal(modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('show');
+                }, 10);
+            }
+            
+            function closeModal(modal) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>

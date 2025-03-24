@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Todo - Fiks ferdig</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+</head>
+<body>
+    <%- include('../partials/navbar.ejs') %>
+
+    <div class="container">
+        <h1>Create a New Task</h1>
+        
+        <form action="/todos" method="POST">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" placeholder="What do you need to do?" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <textarea id="description" name="description" placeholder="Add more details about this task..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="dueDate">Due Date</label>
+                <input type="date" id="dueDate" name="dueDate" value="<%= today %>">
+            </div>
+            <div class="form-group">
+                <label for="important">Mark as Important</label>
+                <div class="important-toggle">
+                    <button type="button" id="importantBtn" class="btn-icon">
+                        <span class="material-icons">star_border</span>
+                    </button>
+                    <input type="hidden" id="importantField" name="important" value="false">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Task</button>
+            <a href="/todos" class="btn">Cancel</a>
+        </form>
+    </div>
+
+    <%- include('../partials/footer.ejs') %>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const importantBtn = document.getElementById('importantBtn');
+            const importantField = document.getElementById('importantField');
+            
+            if (importantBtn) {
+                importantBtn.addEventListener('click', function() {
+                    const icon = importantBtn.querySelector('.material-icons');
+                    const isImportant = importantField.value === 'true';
+                    
+                    if (isImportant) {
+                        icon.textContent = 'star_border';
+                        importantField.value = 'false';
+                        icon.style.color = ''; // Reset to default color
+                    } else {
+                        icon.textContent = 'star';
+                        importantField.value = 'true';
+                        icon.style.color = 'var(--warning)'; // Set to yellow color
+                    }
+                    
+                    // Add animation
+                    icon.classList.add('animate');
+                    setTimeout(() => {
+                        icon.classList.remove('animate');
+                    }, 300);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -186,7 +186,7 @@ app.post('/game/cookie-click', async (req, res) => {
         if (req.session.cookies === undefined) {
             // Initialize from database if first time
             const user = await User.findById(req.session.userId);
-            req.session.cookies = user.cookieGame?.cookies || 0;
+            req.session.cookies = (user.cookieGame && user.cookieGame.cookies) || 0;
             req.session.multiplier = user.cookieGame?.multiplier || 1;
             req.session.cps = user.cookieGame?.cps || 0;
         }
@@ -218,7 +218,7 @@ app.post('/game/purchase-upgrade', async (req, res) => {
         // Initialize session if needed
         if (!req.session.cookies) {
             const user = await User.findById(req.session.userId);
-            req.session.cookies = user.cookieGame?.cookies || 0;
+            req.session.cookies = (user.cookieGame && user.cookieGame.cookies) || 0;
             req.session.multiplier = user.cookieGame?.multiplier || 1;
             req.session.cps = user.cookieGame?.cps || 0;
             req.session.cookieUpgrades = user.cookieGame?.upgrades || {
@@ -285,7 +285,7 @@ app.post('/game/passive-income', async (req, res) => {
         // Initialize if needed
         if (req.session.cookies === undefined) {
             const user = await User.findById(req.session.userId);
-            req.session.cookies = user.cookieGame?.cookies || 0;
+            req.session.cookies = (user.cookieGame && user.cookieGame.cookies) || 0;
             req.session.multiplier = user.cookieGame?.multiplier || 1;
             req.session.cps = user.cookieGame?.cps || 0;
         }

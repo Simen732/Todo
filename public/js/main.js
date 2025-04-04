@@ -4,9 +4,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to fetch todos from the server
     const fetchTodos = async () => {
-        const response = await fetch('/todos');
-        const todos = await response.json();
-        renderTodos(todos);
+        try {
+            const response = await fetch('/todos');
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Response was not JSON, might need to login');
+                return;
+            }
+            
+            const todos = await response.json();
+            renderTodos(todos);
+        } catch (error) {
+            console.error('Error fetching todos:', error);
+        }
     };
 
     // Function to render todos in the list
@@ -102,14 +114,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initial fetch of todos
-    fetchTodos();
+    if (todoList) {
+        fetchTodos();
+    }
 });
 
-// Add this middleware before your routes
-app.use((req, res, next) => {
-    // Add current route and date offset to all templates
-    res.locals.currentRoute = req.path;
-    res.locals.dateOffset = req.query.dateOffset ? parseInt(req.query.dateOffset) : 0;
-    res.locals.title = 'Tasks'; // Default title
-    next();
-});
+// REMOVE THIS SERVER-SIDE CODE FROM CLIENT-SIDE JS
+// app.use((req, res, next) => {
+//     res.locals.currentRoute = req.path;
+//     res.locals.dateOffset = req.query.dateOffset ? parseInt(req.query.dateOffset) : 0;
+//     res.locals.title = 'Tasks';
+//     next();
+// });

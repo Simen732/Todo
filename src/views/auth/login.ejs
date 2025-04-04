@@ -6,9 +6,47 @@
     <title>Login - Fiks ferdig</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+    <style>
+        /* Enhanced transparency for auth pages */
+        .auth-card {
+            background-color: rgba(26, 31, 37, 0.4) !important;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Ensure text is readable */
+        .auth-header h1, .auth-header p, label, .auth-footer p {
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Make inputs semi-transparent too */
+        input[type="email"], input[type="password"] {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        /* Enhance button appearance on transparent background */
+        .btn-auth {
+            background-color: rgba(124, 77, 255, 0.7);
+            backdrop-filter: blur(3px);
+        }
+        
+        /* Make animation wrapper less opaque */
+        .animation-wrapper {
+            background: rgba(15, 18, 24, 0.6) !important;
+        }
+    </style>
 </head>
 <body class="auth-page">
+    <!-- Add animation wrapper here -->
+    <div class="animation-wrapper">
+        <!-- Animation elements will be added by JS -->
+    </div>
+    
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
@@ -40,5 +78,7 @@
             </div>
         </div>
     </div>
+    <script src="/js/animations.js"></script>
+    <script src="/js/animation-check.js"></script>
 </body>
 </html>

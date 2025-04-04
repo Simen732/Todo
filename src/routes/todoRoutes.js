@@ -8,14 +8,15 @@ router.use(authMiddleware);
 
 // GET routes
 router.get('/', todoController.getTodos); // Default today's todos
-router.get('/create', todoController.showCreateForm);
 
 // POST routes
 router.post('/', todoController.createTodo);
 
 // PUT routes
+router.put('/reorder', todoController.reorderTodos); // This specific route must come BEFORE the /:id route
 router.put('/:id', todoController.updateTodo);
-router.put('/:id/important', todoController.toggleImportant); // New route for toggling important status
+router.put('/:id/important', todoController.toggleImportant);
+router.put('/:id/category', todoController.updateTodoCategory);
 
 // DELETE route
 router.delete('/:id', todoController.deleteTodo);

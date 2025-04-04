@@ -1,0 +1,307 @@
+.animation-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Keep it behind content */
+    overflow: hidden;
+    pointer-events: none;
+    background: rgba(15, 18, 24, 0.85); /* Semi-transparent background */
+}
+
+/* Make sure content containers have transparent backgrounds */
+.app-layout {
+    background-color: transparent !important;
+}
+
+.main-content {
+    background-color: rgba(26, 31, 37, 0.7) !important; /* Semi-transparent */
+}
+
+.sidebar {
+    background-color: rgba(21, 27, 34, 0.9) !important; /* Semi-transparent */
+}
+
+/* Meteor Shower Animation - Red Theme */
+.meteor-container {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    width: 100%;
+    height: 120%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.meteor {
+    position: absolute;
+    background: linear-gradient(to bottom right, 
+                rgba(255, 255, 255, 0.9), 
+                rgba(255, 150, 150, 0.8) 10%, 
+                rgba(255, 50, 0, 0.6) 50%, 
+                rgba(180, 0, 0, 0.3) 100%);
+    width: 2px;
+    height: 30px;
+    animation: meteor-fall var(--duration) linear infinite;
+    opacity: var(--meteor-opacity, 0.7);
+    transform: rotate(15deg); /* More vertical angle like raindrops */
+    border-radius: 100px 0px;
+    box-shadow: 0 0 10px 1px rgba(255, 80, 0, 0.6),
+                0 0 16px 2px rgba(200, 0, 0, 0.4);
+}
+
+@keyframes meteor-fall {
+    0% {
+        transform: translateY(-100px) translateX(0) rotate(15deg) scale(0.3);
+        opacity: 0;
+    }
+    5% {
+        opacity: var(--meteor-opacity);
+    }
+    90% {
+        opacity: var(--meteor-opacity);
+    }
+    100% {
+        transform: translateY(calc(100vh + 100px)) translateX(calc(var(--travel-x) * 1px)) rotate(15deg) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Enhance impact effect for meteors - Red theme */
+.impact {
+    position: absolute;
+    bottom: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+                rgba(255, 200, 150, 0.9) 0%, 
+                rgba(255, 80, 0, 0.6) 40%, 
+                rgba(200, 0, 0, 0.2) 70%, 
+                transparent 100%);
+    opacity: 0;
+    transform: scale(0.1);
+    animation: impact 0.8s ease-out;
+    pointer-events: none;
+    box-shadow: 0 0 20px 5px rgba(255, 50, 0, 0.5);
+}
+
+@keyframes impact {
+    0% {
+        opacity: 0.9;
+        transform: scale(0.1);
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(3);
+    }
+}
+
+/* Floating Particles Animation - Make more visible */
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: float-particle var(--duration) ease-in-out infinite !important;
+    background: var(--particle-color, rgba(124, 77, 255, 0.4)); /* Increased opacity */
+    box-shadow: 0 0 20px 5px var(--particle-glow, rgba(124, 77, 255, 0.2)); /* Enhanced glow */
+}
+
+@keyframes float-particle {
+    0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0);
+    }
+    10% {
+        opacity: var(--particle-opacity, 0.5); /* Increased opacity */
+    }
+    90% {
+        opacity: var(--particle-opacity, 0.5); /* Increased opacity */
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(calc(var(--travel-y) * -1px)) translateX(calc(var(--travel-x) * 1px));
+    }
+}
+
+/* Gradient Wave Animation - Enhanced */
+.gradient-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(0deg, rgba(124, 77, 255, 0.08), transparent 70%); /* Increased opacity */
+    transform-origin: bottom;
+    animation: wave-animation 20s infinite alternate ease-in-out;
+    z-index: -1;
+}
+
+.gradient-wave:nth-child(2) {
+    animation-delay: -5s;
+    background: linear-gradient(0deg, rgba(66, 133, 244, 0.08), transparent 70%); /* Increased opacity */
+}
+
+.gradient-wave:nth-child(3) {
+    animation-delay: -10s;
+    background: linear-gradient(0deg, rgba(0, 200, 83, 0.06), transparent 70%); /* Increased opacity */
+}
+
+@keyframes wave-animation {
+    0% {
+        transform: scale(1.05, 1) translateY(5px);
+    }
+    50% {
+        transform: scale(1, 1.05) translateY(0);
+    }
+    100% {
+        transform: scale(1.05, 1) translateY(5px);
+    }
+}
+
+/* Light Rays Animation - Enhanced */
+.light-rays {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, transparent 65%, rgba(124, 77, 255, 0.08) 100%); /* Increased opacity */
+    animation: rotate-rays 45s infinite linear;
+    z-index: -2;
+}
+
+.light-rays:nth-child(2) {
+    animation-duration: 60s;
+    animation-delay: -10s;
+    background: radial-gradient(ellipse at center, transparent 65%, rgba(66, 133, 244, 0.08) 100%); /* Increased opacity */
+}
+
+@keyframes rotate-rays {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Subtle Pulse Animation for Cards */
+.task-create-container, 
+.todo-list li, 
+.auth-card,
+.modal-content {
+    animation: subtle-pulse 3s infinite alternate ease-in-out !important;
+}
+
+.task-create-container:nth-child(odd),
+.todo-list li:nth-child(odd),
+.modal-content {
+    animation-delay: -1.5s;
+}
+
+@keyframes subtle-pulse {
+    0% {
+        box-shadow: var(--card-shadow);
+    }
+    100% {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 0 15px rgba(124, 77, 255, 0.1);
+    }
+}
+
+/* Appear Animation for List Items */
+.todo-list li {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: appear 0.5s forwards !important;
+}
+
+@keyframes appear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Generate different animation delays for list items */
+.todo-list li:nth-child(1) { animation-delay: 0.05s; }
+.todo-list li:nth-child(2) { animation-delay: 0.1s; }
+.todo-list li:nth-child(3) { animation-delay: 0.15s; }
+.todo-list li:nth-child(4) { animation-delay: 0.2s; }
+.todo-list li:nth-child(5) { animation-delay: 0.25s; }
+.todo-list li:nth-child(6) { animation-delay: 0.3s; }
+.todo-list li:nth-child(7) { animation-delay: 0.35s; }
+.todo-list li:nth-child(8) { animation-delay: 0.4s; }
+.todo-list li:nth-child(9) { animation-delay: 0.45s; }
+.todo-list li:nth-child(10) { animation-delay: 0.5s; }
+
+/* Loading Animation */
+.loading-spinner {
+    position: relative;
+}
+
+.loading-spinner::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin-top: -15px;
+    margin-left: -15px;
+    border: 2px solid rgba(124, 77, 255, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spinner 0.8s linear infinite;
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .particles .particle {
+        opacity: 0.1 !important;
+    }
+    
+    .gradient-wave, .light-rays {
+        opacity: 0.5;
+    }
+    
+    .subtle-pulse {
+        animation: none;
+    }
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .animation-wrapper {
+        display: none;
+    }
+    
+    .task-create-container, 
+    .todo-list li, 
+    .auth-card,
+    .modal-content {
+        animation: none;
+    }
+    
+    .todo-list li {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+}

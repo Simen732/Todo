@@ -29,7 +29,7 @@
     --accent-gradient: linear-gradient(135deg, #7c4dff, #5c29ff);
     --success: #00c853;         /* Green */
     --success-gradient: linear-gradient(135deg, #00c853, #009624);
-    --danger: #f44336;          /* Red */
+    --danger: #f44336;         /* Red */
     --danger-gradient: linear-gradient(135deg, #f44336, #d32f2f);
     --warning: #ffab00;         /* Amber */
     --warning-gradient: linear-gradient(135deg, #ffab00, #ff6f00);
@@ -124,6 +124,10 @@ nav ul li a:hover {
     left: 0;
     right: 0;
     bottom: 0;
+}
+
+.app-layout.shake-mode {
+    animation: screen-shake 0.5s infinite;
 }
 
 /* Todo App Sidebar */
@@ -727,6 +731,33 @@ nav ul li a:hover {
     box-shadow: 0 6px 15px rgba(66, 133, 244, 0.5);
 }
 
+/* Make the reject/cancel button text size consistent with other text */
+.btn-secondary {
+    font-size: 13px;
+    color: white; /* Change text to white */
+}
+
+/* Make sure hover state also keeps text white */
+.btn-secondary:hover {
+    color: white;
+}
+
+/* Specifically for the cookie popup buttons */
+.cookie-popup-actions .btn {
+    font-size: 13px;
+}
+
+/* For modal cancel buttons */
+.modal-actions .btn-secondary {
+    font-size: 13px;
+    color: white;
+}
+
+/* For any other cancel buttons throughout the app */
+.btn-secondary .material-icons {
+    font-size: 16px;
+}
+
 /* Forms */
 .form-group input,
 .form-group textarea,
@@ -1052,6 +1083,10 @@ nav ul li a:hover {
     margin-top: 24px;
 }
 
+.modal-actions .btn-secondary {
+    color: white;
+}
+
 .close-modal {
     cursor: pointer;
     font-size: 24px;
@@ -1066,4 +1101,502 @@ nav ul li a:hover {
 /* For the note button indicator */
 .task-create-options button .material-icons.has-content {
     color: var(--primary);
+}
+
+/* Drag handle styling */
+.drag-handle {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    cursor: grab;
+    color: var(--text-muted);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.todo-list li:hover .drag-handle {
+    opacity: 1;
+}
+
+.todo-list li.dragging {
+    opacity: 0.7;
+    background: var(--bg-elevated);
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 100;
+}
+
+.todo-list li.drag-over {
+    border-top: 2px solid var(--primary);
+}
+
+/* Make sure drag-icon has proper styling */
+.drag-icon {
+    font-size: 20px;
+}
+
+/* Category styles */
+.category-filter {
+    margin: 20px 0;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.category-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.category-filter-header > div {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.category-filter-header .btn-icon {
+    height: 36px;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.category-filter-header .material-icons {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.category-filter-header h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0;
+}
+
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 16px;
+    background-color: var(--bg-elevated);
+    color: var(--text);
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border);
+}
+
+.category-item:hover {
+    background-color: var(--hover-overlay);
+    transform: translateY(-1px);
+}
+
+.category-item.active {
+    background-color: var(--category-color, var(--primary));
+    color: white;
+    border-color: transparent;
+}
+
+.category-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.category-name {
+    font-weight: 500;
+}
+
+.todo-category {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    color: white;
+    margin-right: 8px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.category-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 8px 0;
+    margin-bottom: 16px;
+}
+
+.category-option {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-option:hover {
+    background-color: var(--hover-overlay);
+}
+
+.category-option.selected {
+    background-color: var(--active-overlay);
+}
+
+.category-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.category-form input[type="text"] {
+    flex-grow: 1;
+}
+
+.category-form input[type="color"] {
+    width: 40px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-elevated);
+}
+
+.category-list-manage {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.category-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background-color: var(--bg-elevated);
+}
+
+.category-list-item .category-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-list-item .category-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.category-list-item .category-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Profile Page Styles */
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    color: white;
+    box-shadow: var(--glow-primary);
+}
+
+.profile-avatar .material-icons {
+    font-size: 48px;
+}
+
+.profile-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--text);
+}
+
+.profile-details {
+    margin: 30px 0;
+}
+
+.profile-item {
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.profile-item:last-child {
+    border-bottom: none;
+}
+
+.profile-label {
+    color: var(--text-light);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    width: 120px;
+}
+
+.profile-value {
+    color: var(--text);
+    font-size: 16px;
+    flex: 1;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .profile-item {
+        flex-direction: column;
+    }
+    
+    .profile-label {
+        width: 100%;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+    }
+    
+    .profile-actions .btn {
+        width: 100%;
+    }
+}
+
+/* JBL Easter Egg Styles */
+.jbl-container {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.jbl-icon {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+    pointer-events: all;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.7));
+}
+
+.jbl-icon.hidden {
+    opacity: 0;
+    transform: scale(0.2);
+    pointer-events: none;
+}
+
+.jbl-icon.show {
+    opacity: 1;
+    transform: scale(1);
+    animation: pulse-grow 2s infinite alternate;
+}
+
+.jbl-icon.shake {
+    animation: shake 0.5s infinite, pulse-grow 2s infinite alternate;
+}
+
+.jbl-icon.clicked {
+    transform: scale(1.5);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+}
+
+.jbl-icon.fading {
+    animation: fadeout-shrink 1.5s forwards;
+    pointer-events: none;
+}
+
+.jbl-success {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 16px 32px;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 20px;
+    z-index: 10000;
+    box-shadow: 0 0 30px rgba(124, 77, 255, 0.8);
+    animation: success-message 2s forwards;
+}
+
+@keyframes pulse-grow {
+    0% { 
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+    100% { 
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-5deg) scale(1.05); }
+    50% { transform: rotate(0deg) scale(1); }
+    75% { transform: rotate(5deg) scale(1.05); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes success-message {
+    0% { 
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    10% { 
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+    }
+    20% { 
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 1;
+    }
+    80% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeout-shrink {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.2);
+    }
+}
+
+/* Crazy mode effects */
+.animation-wrapper.crazy-mode {
+    animation: crazy-background 0.5s infinite;
+    transition: all 0.2s;
+}
+
+.animation-wrapper.crazy-mode .meteor {
+    filter: hue-rotate(360deg);
+    animation-duration: 0.5s !important;
+    animation-timing-function: linear !important;
+}
+
+.animation-wrapper.crazy-mode .particle {
+    filter: hue-rotate(360deg);
+    animation: crazy-particle 1s infinite !important;
+    opacity: 1 !important;
+}
+
+.animation-wrapper.crazy-mode .gradient-wave {
+    opacity: 1 !important;
+    animation: crazy-wave 1.5s infinite !important;
+}
+
+.animation-wrapper.crazy-mode .light-rays {
+    animation: crazy-rays 3s infinite linear !important;
+    opacity: 1 !important;
+}
+
+@keyframes crazy-background {
+    0% { background-color: rgba(255, 0, 0, 0.4); }
+    20% { background-color: rgba(255, 165, 0, 0.4); }
+    40% { background-color: rgba(255, 255, 0, 0.4); }
+    60% { background-color: rgba(0, 128, 0, 0.4); }
+    80% { background-color: rgba(0, 0, 255, 0.4); }
+    100% { background-color: rgba(128, 0, 128, 0.4); }
+}
+
+@keyframes crazy-particle {
+    0% { transform: scale(1) rotate(0deg); background-color: red; }
+    25% { transform: scale(2) rotate(90deg); background-color: yellow; }
+    50% { transform: scale(1) rotate(180deg); background-color: lime; }
+    75% { transform: scale(2) rotate(270deg); background-color: cyan; }
+    100% { transform: scale(1) rotate(360deg); background-color: magenta; }
+}
+
+@keyframes crazy-wave {
+    0% { background: linear-gradient(0deg, rgba(255, 0, 0, 0.5), transparent 70%); transform: scale(1.2, 1); }
+    33% { background: linear-gradient(0deg, rgba(0, 255, 0, 0.5), transparent 70%); transform: scale(1, 1.2); }
+    66% { background: linear-gradient(0deg, rgba(0, 0, 255, 0.5), transparent 70%); transform: scale(1.2, 1); }
+    100% { background: linear-gradient(0deg, rgba(255, 0, 0, 0.5), transparent 70%); transform: scale(1, 1.2); }
+}
+
+@keyframes crazy-rays {
+    0% { transform: rotate(0deg); background: radial-gradient(ellipse at center, transparent 50%, rgba(255, 0, 0, 0.5) 100%); }
+    33% { transform: rotate(120deg); background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 255, 0, 0.5) 100%); }
+    66% { transform: rotate(240deg); background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 255, 0.5) 100%); }
+    100% { transform: rotate(360deg); background: radial-gradient(ellipse at center, transparent 50%, rgba(255, 0, 0, 0.5) 100%); }
+}
+
+/* Add this to your CSS */
+@keyframes screen-shake {
+    0% { transform: translate(0, 0); }
+    10% { transform: translate(-5px, -5px); }
+    20% { transform: translate(5px, 5px); }
+    30% { transform: translate(-5px, 5px); }
+    40% { transform: translate(5px, -5px); }
+    50% { transform: translate(-5px, 0); }
+    60% { transform: translate(5px, 0); }
+    70% { transform: translate(0, 5px); }
+    80% { transform: translate(0, -5px); }
+    90% { transform: translate(-5px, -5px); }
+    100% { transform: translate(0, 0); }
 }

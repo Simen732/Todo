@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const Todo = require('../models/Todo'); // Add this import for task count
 
 class AuthController {
     // Register a new user
@@ -99,6 +100,75 @@ class AuthController {
             }
             res.redirect('/auth/login');
         });
+    }
+
+    // Add these methods to your authController
+    getChangePassword(req, res) {
+        res.render('auth/change-password', {
+            title: 'Change Password'
+        });
+    }
+
+    async changePassword(req, res) {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+        
+        try {
+            // Check if passwords match
+            if (newPassword !== confirmPassword) {
+                return res.render('auth/change-password', {
+                    title: 'Change Password',
+                    errorMessage: 'New passwords do not match'
+                });
+            }
+            
+            // Get user from database to verify password
+            const user = await User.findById(req.user._id);
+            
+            // Check current password
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isMatch) {
+                return res.render('auth/change-password', {
+                    title: 'Change Password',
+                    errorMessage: 'Current password is incorrect'
+                });
+            }
+            
+            // Hash new password
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(newPassword, salt);
+            await user.save();
+            
+            return res.render('auth/change-password', {
+                title: 'Change Password',
+                successMessage: 'Password changed successfully'
+            });
+        } catch (error) {
+            console.error('Error changing password:', error);
+            res.render('auth/change-password', {
+                title: 'Change Password',
+                errorMessage: 'An error occurred while changing your password'
+            });
+        }
+    }
+
+    // Add this new method
+    async getProfile(req, res) {
+        try {
+            // Count user's tasks
+            const taskCount = await Todo.countDocuments({ user: req.user._id });
+            
+            res.render('auth/profile', {
+                title: 'Your Profile',
+                user: req.user,
+                taskCount
+            });
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            res.status(500).render('error', { 
+                message: 'Error loading profile', 
+                error: process.env.NODE_ENV === 'development' ? error : {}
+            });
+        }
     }
 }
 

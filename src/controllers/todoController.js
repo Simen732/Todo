@@ -1,9 +1,16 @@
 const Todo = require('../models/Todo');
+const Category = require('../models/Category');
 const { isToday, addDays } = require('../utils/dateHelpers');
 
 class TodoController {
-    constructor(TodoModel) {
-        this.TodoModel = TodoModel;
+    constructor() {
+        this.getTodos = this.getTodos.bind(this);
+        this.createTodo = this.createTodo.bind(this);
+        this.updateTodo = this.updateTodo.bind(this);
+        this.toggleImportant = this.toggleImportant.bind(this);
+        this.deleteTodo = this.deleteTodo.bind(this);
+        this.reorderTodos = this.reorderTodos.bind(this);
+        this.updateTodoCategory = this.updateTodoCategory.bind(this);
     }
 
     // Get todos for specific date (default: today)
@@ -20,23 +27,47 @@ class TodoController {
             
             const endOfDay = new Date(targetDate);
             endOfDay.setHours(23, 59, 59, 999);
+
+            // Get filter by category if provided - ENSURE it always has a value
+            const categoryFilter = req.query.category || null;
             
-            // Fetch todos for the user on the specific date
-            const todos = await this.TodoModel.find({
+            // Build query
+            const query = {
                 user: req.user._id,
                 dueDate: {
                     $gte: startOfDay,
                     $lte: endOfDay
                 }
-            }).sort({ createdAt: -1 });
+            };
+
+            // Add category filter if provided
+            if (categoryFilter) {
+                query.category = categoryFilter;
+            }
+            
+            // Get categories for this user - Make sure this is before the render call
+            let categories = [];
+            try {
+                categories = await Category.find({ user: req.user._id }).sort({ name: 1 });
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                // Continue with empty categories array
+            }
+            
+            // Get todos with populated category
+            const todos = await Todo.find(query)
+                .populate('category')
+                .sort({ order: 1, createdAt: -1 });
             
             res.render('todos/index', { 
                 todos,
+                categories, // Ensure categories is passed to the template
                 currentDate: targetDate,
                 dateOffset,
                 nextDate: dateOffset + 1,
                 prevDate: dateOffset - 1,
-                isToday: isToday(targetDate)
+                isToday: isToday(targetDate),
+                categoryFilter: categoryFilter // Explicitly pass the value
             });
         } catch (error) {
             console.error('Error fetching todos:', error);
@@ -47,32 +78,23 @@ class TodoController {
         }
     }
     
-    // Show create todo form
-    showCreateForm(req, res) {
-        const today = new Date().toISOString().substr(0, 10); // Format: YYYY-MM-DD
-        res.render('todos/create', { today });
-    }
-
     // Create new todo
     async createTodo(req, res) {
         try {
-            const { title, description, dueDate, important } = req.body;
+            const { title, description, dueDate, important, category } = req.body;
             
             // Validate input
             if (!title) {
-                return res.render('todos/create', {
-                    error: 'Title is required',
-                    values: req.body,
-                    today: new Date().toISOString().substr(0, 10)
-                });
+                return res.redirect('/todos');
             }
             
-            // Create new todo with important field
-            const todo = new this.TodoModel({
+            // Create new todo with important and category fields
+            const todo = new Todo({
                 title,
                 description,
                 dueDate: dueDate || Date.now(),
                 important: important === 'true',
+                category: category || null,
                 user: req.user._id
             });
             
@@ -81,11 +103,32 @@ class TodoController {
             res.redirect('/todos');
         } catch (error) {
             console.error('Error creating todo:', error);
-            res.render('todos/create', {
-                error: 'Error creating todo',
-                values: req.body,
-                today: new Date().toISOString().substr(0, 10)
-            });
+            res.redirect('/todos');
+        }
+    }
+
+    // Update todo category
+    async updateTodoCategory(req, res) {
+        try {
+            const { id } = req.params;
+            const { category } = req.body;
+            
+            const update = category ? { category } : { $unset: { category: "" } };
+            
+            const todo = await Todo.findOneAndUpdate(
+                { _id: id, user: req.user._id },
+                update,
+                { new: true }
+            );
+            
+            if (!todo) {
+                return res.status(404).json({ message: 'Todo not found' });
+            }
+            
+            res.status(200).json(todo);
+        } catch (error) {
+            console.error('Error updating todo category:', error);
+            res.status(500).json({ message: 'Error updating todo category', error });
         }
     }
 
@@ -95,7 +138,7 @@ class TodoController {
             const { id } = req.params;
             const { important } = req.body;
             
-            const todo = await this.TodoModel.findOneAndUpdate(
+            const todo = await Todo.findOneAndUpdate(
                 { _id: id, user: req.user._id },
                 { important: important === 'true' },
                 { new: true }
@@ -118,7 +161,7 @@ class TodoController {
             const { id } = req.params;
             const updates = req.body;
             
-            const todo = await this.TodoModel.findOneAndUpdate(
+            const todo = await Todo.findOneAndUpdate(
                 { _id: id, user: req.user._id },
                 updates,
                 { new: true }
@@ -140,7 +183,7 @@ class TodoController {
         try {
             const { id } = req.params;
             
-            const todo = await this.TodoModel.findOneAndDelete({
+            const todo = await Todo.findOneAndDelete({
                 _id: id,
                 user: req.user._id
             });
@@ -155,6 +198,34 @@ class TodoController {
             res.status(500).json({ message: 'Error deleting todo', error });
         }
     }
+
+    // Reorder todos
+    async reorderTodos(req, res) {
+        try {
+            const { items } = req.body;
+            
+            // Validate input
+            if (!items || !Array.isArray(items)) {
+                return res.status(400).json({ message: 'Invalid input' });
+            }
+            
+            // Process each item in the reordered array
+            const updatePromises = items.map((item, index) => {
+                return Todo.findOneAndUpdate(
+                    { _id: item.id, user: req.user._id },
+                    { order: index },
+                    { new: true }
+                );
+            });
+            
+            await Promise.all(updatePromises);
+            
+            res.status(200).json({ message: 'Tasks reordered successfully' });
+        } catch (error) {
+            console.error('Error reordering todos:', error);
+            res.status(500).json({ message: 'Error reordering tasks', error });
+        }
+    }
 }
 
-module.exports = new TodoController(Todo);
+module.exports = new TodoController();

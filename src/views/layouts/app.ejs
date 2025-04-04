@@ -5,9 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
-    <title><%= title %> - Fiks Ferdig</title>
+    <link rel="stylesheet" href="/css/animations.css">
+    <title><%= typeof title !== 'undefined' ? title + ' - Fiks Ferdig' : 'Fiks Ferdig' %></title>
+    <style>
+        .cookie-popup {
+            position: fixed;
+            bottom: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            border: 1px solid var(--border);
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        
+        .cookie-popup.show {
+            bottom: 20px;
+        }
+        
+        .cookie-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .cookie-popup-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .cookie-icon {
+            font-size: 24px;
+            color: var(--warning);
+        }
+        
+        .cookie-popup p {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .cookie-popup-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .cookie-popup-actions .btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+        }
+        
+        .cookie-popup-actions .material-icons {
+            font-size: 16px;
+        }
+
+        .too-bad-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(145deg, var(--bg-card), var(--warning));
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            border: 1px solid var(--border);
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .too-bad-popup.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .too-bad-popup-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-icon {
+            font-size: 48px;
+            color: var(--bg);
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .too-bad-popup h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--bg);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
 <body>
+    <!-- IMPORTANT: Animation wrapper should be before app-layout -->
+    <div class="animation-wrapper">
+        <!-- Animation elements will be added by JS -->
+    </div>
+
     <div class="app-layout">
         <!-- Sidebar -->
         <div class="sidebar" id="app-sidebar">
@@ -38,6 +159,18 @@
                         Next Week
                     </a>
                 </li>
+                <!-- <li>
+                    <a href="/game/cookie-clicker" class="<%= currentRoute === '/game/cookie-clicker' ? 'active' : '' %>">
+                        <span class="material-icons nav-icon">cookie</span>
+                        Cookie Clicker
+                    </a>
+                </li> -->
+                <li>
+                    <a href="/auth/profile" class="<%= currentRoute === '/auth/profile' ? 'active' : '' %>">
+                        <span class="material-icons nav-icon">person</span>
+                        Profile
+                    </a>
+                </li>
                 <li>
                     <a href="/auth/logout">
                         <span class="material-icons nav-icon">logout</span>
@@ -54,6 +187,10 @@
     </div>
 
     <script src="/js/main.js"></script>
+    <script src="/js/animations.js"></script>
+    <script src="/js/animation-check.js"></script>
+    <!-- JBL Easter Egg -->
+    <script src="/js/jbl-easter-egg.js"></script>
     <script>
         // Mobile sidebar toggle
         document.getElementById('menu-toggle').addEventListener('click', function() {
@@ -69,6 +206,94 @@
                 }, 300);
             });
         });
+        
+        // Cookie popup functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only show cookie popup if we're not already on the cookie clicker page
+            if (!window.location.pathname.includes('/game/cookie-clicker')) {
+                const cookiePopup = document.getElementById('cookiePopup');
+                const acceptCookies = document.getElementById('acceptCookies');
+                const rejectCookies = document.getElementById('rejectCookies');
+                
+                // Check if user has already made a cookie choice
+                const cookiePreference = localStorage.getItem('cookiePreference');
+                const lastInteraction = localStorage.getItem('cookieInteractionTime');
+                const currentTime = new Date().getTime();
+                
+                // Calculate time difference - show popup again after 7 days
+                const showAgainAfterMs = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+                const shouldShowAgain = !lastInteraction || (currentTime - parseInt(lastInteraction)) > showAgainAfterMs;
+                
+                // Show popup only if no preference saved or if it's time to show again
+                if (!cookiePreference || shouldShowAgain) {
+                    setTimeout(() => {
+                        cookiePopup.classList.add('show');
+                    }, 1000);
+                }
+                
+                // Accept cookies (redirect to Cookie Clicker game)
+                acceptCookies.addEventListener('click', function() {
+                    cookiePopup.classList.remove('show');
+                    
+                    // Save preference and timestamp in localStorage
+                    localStorage.setItem('cookiePreference', 'accepted');
+                    localStorage.setItem('cookieInteractionTime', currentTime.toString());
+                    
+                    setTimeout(() => {
+                        window.location.href = '/game/cookie-clicker';
+                    }, 300);
+                });
+                
+                // Reject cookies (show too bad popup, then close both)
+                rejectCookies.addEventListener('click', function() {
+                    cookiePopup.classList.remove('show');
+                    
+                    // Save preference and timestamp in localStorage
+                    localStorage.setItem('cookiePreference', 'rejected');
+                    localStorage.setItem('cookieInteractionTime', currentTime.toString());
+                    
+                    // Show "Too Bad" popup
+                    const tooBadPopup = document.getElementById('tooBadPopup');
+                    setTimeout(() => {
+                        tooBadPopup.classList.add('show');
+                        
+                        // Auto-hide after 3 seconds
+                        setTimeout(() => {
+                            tooBadPopup.classList.remove('show');
+                        }, 3000);
+                    }, 300);
+                });
+            }
+        });
     </script>
+
+    <!-- Cookie Acceptance Popup -->
+    <div id="cookiePopup" class="cookie-popup">
+        <div class="cookie-popup-content">
+            <div class="cookie-popup-header">
+                <span class="material-icons cookie-icon">cookie</span>
+                <h3>Accept Cookies?</h3>
+            </div>
+            <p>This website uses cookies to enhance your experience. Would you like to accept them?</p>
+            <div class="cookie-popup-actions">
+                <button id="acceptCookies" class="btn btn-primary">
+                    <span class="material-icons">check_circle</span>
+                    Accept Cookies
+                </button>
+                <button id="rejectCookies" class="btn btn-secondary">
+                    <span class="material-icons">cancel</span>
+                    Reject Cookies
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- "Too Bad" Popup -->
+    <div id="tooBadPopup" class="too-bad-popup">
+        <div class="too-bad-popup-content">
+            <span class="material-icons data-icon">dns</span>
+            <h3>Womp womp, we have allready stolen all your data</h3>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Animations - Fiks ferdig</title>
+    <link rel="stylesheet" href="/css/animations.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        
+        .test-controls {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10;
+            text-align: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="animation-wrapper">
+        <!-- Animation elements will be added by JS -->
+    </div>
+    
+    <div class="test-controls">
+        <h2>Animation Test</h2>
+        <p>If you can see animated elements behind this box, the animations are working!</p>
+        <button onclick="location.href='/'">Return to App</button>
+    </div>
+
+    <script src="/js/animations.js"></script>
+    <script src="/js/animation-check.js"></script>
+</body>
+</html>

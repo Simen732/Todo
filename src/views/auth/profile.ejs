@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile - Fiks Ferdig</title>
+</head>
+<body>
+    <div class="container">
+        <div class="content-header">
+            <h1>
+                <span class="material-icons">person</span> Your Profile
+            </h1>
+            <a href="/todos" class="btn"><span class="material-icons">arrow_back</span> Back to Tasks</a>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <span class="material-icons md-48">account_circle</span>
+                        </div>
+                        <h2><%= user.username %></h2>
+                    </div>
+                    
+                    <div class="profile-details">
+                        <div class="profile-item">
+                            <div class="profile-label">Email</div>
+                            <div class="profile-value"><%= user.email %></div>
+                        </div>
+                        
+                        <div class="profile-item">
+                            <div class="profile-label">Member Since</div>
+                            <div class="profile-value"><%= formatDate(user.createdAt) %></div>
+                        </div>
+                        
+                        <div class="profile-item">
+                            <div class="profile-label">Tasks Created</div>
+                            <div class="profile-value"><%= taskCount || 0 %></div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <a href="/auth/change-password" class="btn btn-primary">Change Password</a>
+                        <a href="/auth/edit-profile" class="btn">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer.ejs') %>
+
+    <script src="/js/animations.js"></script>
+</body>
+</html>

@@ -8,15 +8,16 @@
     "dev": "nodemon app.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "mongoose": "^5.10.9",
-    "express-session": "^1.17.1",
     "bcrypt": "^5.0.1",
-    "ejs": "^3.1.6",
-    "dotenv": "^8.2.0",
     "connect-mongo": "^3.1.1",
     "cookie-parser": "^1.4.5",
-    "method-override": "^3.0.0"
+    "dotenv": "^8.2.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.17.1",
+    "method-override": "^3.0.0",
+    "mongoose": "^5.10.9"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"

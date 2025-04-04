@@ -1,0 +1,620 @@
+<div class="content-header">
+    <h1>
+        <span class="material-icons">cookie</span> Cookie Clicker
+    </h1>
+</div>
+
+<div class="content-wrapper">
+    <div class="cookie-game-container">
+        <div class="cookie-stats">
+            <h2><span id="cookie-count"><%= cookies %></span> cookies</h2>
+            <p>per click: <span id="multiplier"><%= multiplier %></span></p>
+            <p>per second: <span id="cps"><%= cps %></span></p>
+        </div>
+        
+        <div class="cookie-container">
+            <img src="/img/cookie.png" id="cookie" alt="Cookie" class="cookie-image">
+        </div>
+        
+        <div class="cookie-upgrades">
+            <h3>Upgrades</h3>
+            <div class="upgrade-item" data-id="cursor" data-cost="<%= upgrades && upgrades.cursor ? upgrades.cursor.nextCost : 10 %>" data-multiplier="1">
+                <span class="material-icons">mouse</span>
+                <div class="upgrade-details">
+                    <h4>Cursor <span class="upgrade-count">(<%= upgrades && upgrades.cursor ? upgrades.cursor.count : 0 %> owned)</span></h4>
+                    <p>+1 cookie per click</p>
+                    <p class="upgrade-cost"><%= upgrades && upgrades.cursor ? upgrades.cursor.nextCost : 10 %> cookies</p>
+                </div>
+                <button class="btn btn-upgrade">Buy</button>
+            </div>
+            
+            <div class="upgrade-item" data-id="grandma" data-cost="<%= upgrades && upgrades.grandma ? upgrades.grandma.nextCost : 100 %>" data-cps="1">
+                <span class="material-icons">elderly_woman</span>
+                <div class="upgrade-details">
+                    <h4>Grandma <span class="upgrade-count">(<%= upgrades && upgrades.grandma ? upgrades.grandma.count : 0 %> owned)</span></h4>
+                    <p>+1 cookie per second</p>
+                    <p class="upgrade-cost"><%= upgrades && upgrades.grandma ? upgrades.grandma.nextCost : 100 %> cookies</p>
+                </div>
+                <button class="btn btn-upgrade">Buy</button>
+            </div>
+            
+            <div class="upgrade-item" data-id="farm" data-cost="<%= upgrades && upgrades.farm ? upgrades.farm.nextCost : 500 %>" data-cps="5">
+                <span class="material-icons">agriculture</span>
+                <div class="upgrade-details">
+                    <h4>Farm <span class="upgrade-count">(<%= upgrades && upgrades.farm ? upgrades.farm.count : 0 %> owned)</span></h4>
+                    <p>+5 cookies per second</p>
+                    <p class="upgrade-cost"><%= upgrades && upgrades.farm ? upgrades.farm.nextCost : 500 %> cookies</p>
+                </div>
+                <button class="btn btn-upgrade">Buy</button>
+            </div>
+            
+            <div class="upgrade-item" data-id="factory" data-cost="<%= upgrades && upgrades.factory ? upgrades.factory.nextCost : 2000 %>" data-cps="10">
+                <span class="material-icons">factory</span>
+                <div class="upgrade-details">
+                    <h4>Factory <span class="upgrade-count">(<%= upgrades && upgrades.factory ? upgrades.factory.count : 0 %> owned)</span></h4>
+                    <p>+10 cookies per second</p>
+                    <p class="upgrade-cost"><%= upgrades && upgrades.factory ? upgrades.factory.nextCost : 2000 %> cookies</p>
+                </div>
+                <button class="btn btn-upgrade">Buy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save button in the bottom right corner -->
+<div class="save-button-container">
+    <button id="saveGameBtn" class="save-button">
+        <span class="material-icons">save</span>
+        <span class="save-text">Save Game</span>
+    </button>
+    <div id="saveStatus" class="save-status">
+        <span class="unsaved-indicator">●</span> Unsaved Changes
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cookie = document.getElementById('cookie');
+        const cookieCount = document.getElementById('cookie-count');
+        const multiplierSpan = document.getElementById('multiplier');
+        const cpsSpan = document.getElementById('cps');
+        const upgradeButtons = document.querySelectorAll('.btn-upgrade');
+        
+        let cookies = <%= cookies %>;
+        let multiplier = <%= multiplier %>;
+        let cps = <%= cps %>;
+        
+        // Cookie click animation and handling
+        cookie.addEventListener('click', function() {
+            // Add animation class
+            this.classList.add('cookie-clicked');
+            
+            // Create floating text showing points gained
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-points';
+            floatingText.textContent = `+${multiplier}`;
+            this.parentNode.appendChild(floatingText);
+            
+            // Position the floating text randomly around the cookie
+            const xOffset = (Math.random() * 60) - 30;
+            const yOffset = (Math.random() * 20) - 60;
+            floatingText.style.left = `calc(50% + ${xOffset}px)`;
+            floatingText.style.top = `calc(50% + ${yOffset}px)`;
+            
+            // Remove animation class and floating text after animation
+            setTimeout(() => {
+                this.classList.remove('cookie-clicked');
+                floatingText.remove();
+            }, 700);
+            
+            // Send click to server
+            fetch('/game/cookie-click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                cookies = data.cookies;
+                cookieCount.textContent = cookies;
+                updateUpgradeButtons();
+            })
+            .catch(error => console.error('Error:', error));
+            
+            // Also mark as unsaved
+            markUnsaved();
+        });
+        
+        // Handle upgrades
+        upgradeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const upgradeItem = this.closest('.upgrade-item');
+                const cost = parseInt(upgradeItem.getAttribute('data-cost'));
+                
+                if (cookies >= cost) {
+                    const upgradeId = upgradeItem.getAttribute('data-id');
+                    const upgradeMultiplier = upgradeItem.hasAttribute('data-multiplier') ? 
+                        parseInt(upgradeItem.getAttribute('data-multiplier')) : 0;
+                    const upgradeCps = upgradeItem.hasAttribute('data-cps') ? 
+                        parseInt(upgradeItem.getAttribute('data-cps')) : 0;
+                    
+                    // Send upgrade purchase to server
+                    fetch('/game/purchase-upgrade', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            upgradeId,
+                            cost,
+                            multiplier: upgradeMultiplier,
+                            cps: upgradeCps
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        cookies = data.cookies;
+                        multiplier = data.multiplier;
+                        cps = data.cps;
+                        
+                        cookieCount.textContent = cookies;
+                        multiplierSpan.textContent = multiplier;
+                        cpsSpan.textContent = cps;
+                        
+                        // Update cost for next purchase (doubles each time)
+                        const newCost = cost * 2;
+                        upgradeItem.setAttribute('data-cost', newCost);
+                        upgradeItem.querySelector('.upgrade-cost').textContent = `${newCost} cookies`;
+                        
+                        // Show success animation
+                        button.classList.add('upgrade-success');
+                        setTimeout(() => {
+                            button.classList.remove('upgrade-success');
+                        }, 500);
+                        
+                        updateUpgradeButtons();
+                    })
+                    .catch(error => console.error('Error:', error));
+                    
+                    // These are important changes, so we'll still save to DB
+                    // but also mark as potentially unsaved for other changes
+                    markUnsaved();
+                }
+            });
+        });
+        
+        // Update button states based on cookie count
+        function updateUpgradeButtons() {
+            upgradeButtons.forEach(button => {
+                const upgradeItem = button.closest('.upgrade-item');
+                const cost = parseInt(upgradeItem.getAttribute('data-cost'));
+                
+                if (cookies >= cost) {
+                    button.removeAttribute('disabled');
+                    button.classList.remove('disabled');
+                } else {
+                    button.setAttribute('disabled', 'true');
+                    button.classList.add('disabled');
+                }
+            });
+        }
+        
+        // Update the CPS timer to run 10 times per second
+        let lastServerUpdate = Date.now();
+        
+        setInterval(() => {
+            if (cps > 0) {
+                // Add 1/10th of the cookies per second on each interval
+                cookies += cps / 10; 
+                
+                // Update the display - show with 1 decimal place to see small increments
+                cookieCount.textContent = Math.floor(cookies);
+                
+                // Update button states based on new cookie count
+                updateUpgradeButtons();
+                
+                // Mark as unsaved if cookies changed
+                markUnsaved();
+                
+                // Update server only once per second to avoid too many requests
+                const now = Date.now();
+                if (now - lastServerUpdate >= 1000) {
+                    lastServerUpdate = now;
+                    
+                    fetch('/game/passive-income', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+            }
+        }, 100); // Run 10 times per second (every 100ms)
+        
+        // Initialize button states
+        updateUpgradeButtons();
+        
+        // Check for offline earnings notification
+        <% if (typeof offlineEarnings !== 'undefined' && offlineEarnings > 0) { %>
+            showOfflineEarningsNotification(<%= offlineEarnings %>);
+        <% } %>
+        
+        // Initialize upgrades from server data
+        <% if (typeof upgrades !== 'undefined' && upgrades) { %>
+            try {
+                const serverUpgrades = <%- JSON.stringify(upgrades) %>;
+                // Update each upgrade display
+                Object.keys(serverUpgrades).forEach(upgradeId => {
+                    const upgrade = serverUpgrades[upgradeId];
+                    const upgradeEl = document.querySelector(`.upgrade-item[data-id="${upgradeId}"]`);
+                    if (upgradeEl) {
+                        upgradeEl.setAttribute('data-cost', upgrade.nextCost);
+                        upgradeEl.querySelector('.upgrade-cost').textContent = `${upgrade.nextCost} cookies`;
+                        const countEl = upgradeEl.querySelector('.upgrade-count');
+                        if (countEl) {
+                            countEl.textContent = `(${upgrade.count} owned)`;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing upgrades:', error);
+            }
+        <% } %>
+    });
+    
+    function showOfflineEarningsNotification(amount) {
+        const notification = document.createElement('div');
+        notification.className = 'offline-earnings-notification';
+        notification.innerHTML = `
+            <h3>Welcome Back!</h3>
+            <p>You earned <strong>${amount}</strong> cookies while away.</p>
+            <button onclick="this.parentNode.remove()">OK</button>
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    // Save game functionality
+    const saveGameBtn = document.getElementById('saveGameBtn');
+    const saveStatus = document.getElementById('saveStatus');
+    let hasUnsavedChanges = false;
+    let isSaving = false;
+
+    // Functions to track unsaved changes
+    function markUnsaved() {
+        if (!hasUnsavedChanges) {
+            hasUnsavedChanges = true;
+            saveStatus.classList.add('show');
+        }
+    }
+
+    function markSaved() {
+        hasUnsavedChanges = false;
+        saveStatus.classList.remove('show');
+        
+        // Show successful save animation
+        saveGameBtn.classList.add('saved');
+        saveGameBtn.innerHTML = '<span class="material-icons">check</span> <span class="save-text">Saved!</span>';
+        
+        setTimeout(() => {
+            saveGameBtn.classList.remove('saved');
+            saveGameBtn.innerHTML = '<span class="material-icons">save</span> <span class="save-text">Save Game</span>';
+        }, 2000);
+    }
+
+    // Mark changes as unsaved when cookies change
+    function trackChanges() {
+        // When cookie count changes
+        markUnsaved();
+    }
+
+    // Save game data
+    saveGameBtn.addEventListener('click', function() {
+        if (isSaving || !hasUnsavedChanges) return;
+        
+        isSaving = true;
+        saveGameBtn.classList.add('saving');
+        saveGameBtn.innerHTML = '<span class="material-icons">hourglass_top</span> <span class="save-text">Saving...</span>';
+        
+        fetch('/game/save-game', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                cookies: cookies,
+                multiplier: multiplier,
+                cps: cps
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to save game');
+            }
+            return response.json();
+        })
+        .then(() => {
+            markSaved();
+        })
+        .catch(error => {
+            console.error('Error saving game:', error);
+            saveGameBtn.innerHTML = '<span class="material-icons">error</span> <span class="save-text">Save Failed</span>';
+            
+            setTimeout(() => {
+                saveGameBtn.classList.remove('saving');
+                saveGameBtn.innerHTML = '<span class="material-icons">save</span> <span class="save-text">Save Game</span>';
+            }, 2000);
+        })
+        .finally(() => {
+            isSaving = false;
+            saveGameBtn.classList.remove('saving');
+        });
+    });
+</script>
+
+<style>
+    .cookie-game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+        padding-bottom: 50px;
+    }
+    
+    .cookie-stats {
+        text-align: center;
+        background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid var(--border);
+    }
+    
+    .cookie-stats h2 {
+        font-size: 28px;
+        margin: 0 0 10px;
+        background: linear-gradient(90deg, var(--warning), #ff8c00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .cookie-container {
+        text-align: center;
+        position: relative;
+        width: 200px;
+        height: 200px;
+        animation: container-spin 20s linear infinite; /* Slow continuous spin */
+    }
+    
+    @keyframes container-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .cookie-image {
+        width: 180px;
+        height: 180px;
+        cursor: pointer;
+        user-select: none;
+        filter: drop-shadow(0 0 15px rgba(150, 100, 50, 0.8));
+        transition: all 0.1s;
+    }
+    
+    .cookie-image:hover {
+        filter: drop-shadow(0 0 20px rgba(180, 120, 60, 0.9));
+        width: 190px;
+        height: 190px;
+    }
+    
+    .cookie-clicked {
+        width: 170px;
+        height: 170px;
+        animation: pulse 0.3s ease-out;
+    }
+    
+    @keyframes pulse {
+        0% { width: 170px; height: 170px; }
+        50% { width: 160px; height: 160px; }
+        100% { width: 170px; height: 170px; }
+    }
+    
+    .floating-points {
+        position: absolute;
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--warning);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        pointer-events: none;
+        animation: float-up 0.7s ease-out;
+        opacity: 0;
+    }
+    
+    @keyframes float-up {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(-50px); opacity: 0; }
+    }
+    
+    .cookie-upgrades {
+        background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid var(--border);
+    }
+    
+    .cookie-upgrades h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        text-align: center;
+        font-size: 18px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .upgrade-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+    
+    .upgrade-item:hover {
+        background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .upgrade-item .material-icons {
+        font-size: 32px;
+        margin-right: 15px;
+        color: var(--primary);
+    }
+    
+    .upgrade-details {
+        flex-grow: 1;
+    }
+    
+    .upgrade-details h4 {
+        margin: 0 0 5px;
+    }
+    
+    .upgrade-details p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-light);
+    }
+    
+    .upgrade-cost {
+        font-weight: bold;
+        color: var(--warning) !important;
+    }
+    
+    .btn-upgrade {
+        padding: 5px 10px;
+        min-width: 60px;
+    }
+    
+    .btn-upgrade.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: gray;
+    }
+    
+    .upgrade-success {
+        animation: success-pulse 0.5s ease-out;
+    }
+    
+    @keyframes success-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); box-shadow: 0 0 15px var(--primary); }
+        100% { transform: scale(1); }
+    }
+    
+    .offline-earnings-notification {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-elevated);
+        border: 2px solid var(--primary);
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        z-index: 1000;
+        animation: fadeIn 0.5s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .upgrade-count {
+        margin-left: 5px;
+        color: var(--accent);
+        font-size: 11px;
+    }
+
+    /* Save button styling */
+    .save-button-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        z-index: 100;
+    }
+    
+    .save-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: rgba(124, 77, 255, 0.7);
+        border: none;
+        border-radius: 20px;
+        color: white;
+        cursor: pointer;
+        font-weight: 500;
+        backdrop-filter: blur(4px);
+        transition: all 0.3s ease;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .save-button:hover {
+        background-color: rgba(124, 77, 255, 0.9);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .save-button .material-icons {
+        font-size: 18px;
+    }
+    
+    .save-status {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 10px;
+        background-color: rgba(0, 0, 0, 3);
+        backdrop-filter: blur(2px);
+        opacity: 0; /* Hidden by default */
+        transition: opacity 0.3s ease;
+    }
+    
+    .save-status.show {
+        opacity: 1;
+    }
+    
+    .unsaved-indicator {
+        color: #ff9800;
+        font-size: 14px;
+        animation: blink 1.5s infinite;
+    }
+    
+    @keyframes blink {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+    }
+    
+    .save-button.saving {
+        background-color: rgba(80, 80, 80, 0.7);
+        pointer-events: none;
+    }
+    
+    .save-button.saved {
+        background-color: rgba(76, 175, 80, 0.7);
+    }
+</style>
